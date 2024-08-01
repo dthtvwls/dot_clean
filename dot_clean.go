@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,41 +9,37 @@ import (
 
 func main() {
 	if len(os.Args) < 3 || os.Args[1] != "-m" {
-		log.Fatal("Usage: dot_clean [-m] [dir]")
+		os.Stderr.WriteString("usage: dot_clean [-m] [dir]\n")
+		os.Exit(1)
 	}
 
 	abs, err := filepath.Abs(os.Args[2])
 	if err != nil {
-		log.Fatal(err)
+		os.Stderr.WriteString(err.Error())
+		os.Exit(1)
 	}
-
-	// volumeName := filepath.VolumeName(abs)
-	// isWindows := volumeName != ""
-	// isWindows := runtime.GOOS == "windows"
-	// fmt.Println(isWindows)
 
 	stat, err := os.Stat(abs)
 	if err != nil {
-		log.Fatal(err)
+		os.Stderr.WriteString(err.Error())
+		os.Exit(1)
 	}
 
 	if !stat.IsDir() {
-		log.Fatal(abs + " is not a directory")
+		os.Stderr.WriteString("Failed trying to change dir to " + abs + "\n")
+		os.Stderr.WriteString("Bad Pathname: Not a directory\n")
+		os.Exit(0)
 	}
 
-	filepath.Walk(abs, func(path string, info fs.FileInfo, err error) error {
-		if !strings.HasPrefix(path[strings.LastIndex(path, string(os.PathSeparator))+1:], "._"){
+	err = filepath.Walk(abs, func(path string, info fs.FileInfo, err error) error {
+		if !strings.HasPrefix(path[strings.LastIndex(path, string(os.PathSeparator))+1:], "._") {
 			return nil
 		}
 
-		fmt.Println("Would remove "+path)
-
-		// if err := os.Remove(path); err != nil {
-		// 	return err
-		// } else {
-		// 	fmt.Println("Removed "+path)
-		// }
-
-		return nil
+		return os.Remove(path)
 	})
+	if err != nil {
+		os.Stderr.WriteString(err.Error())
+		os.Exit(1)
+	}
 }
