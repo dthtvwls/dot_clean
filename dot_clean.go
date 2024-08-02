@@ -7,28 +7,28 @@ import (
 	"strings"
 )
 
+func exit(errString string) {
+	os.Stderr.WriteString(errString + "\n")
+	os.Exit(1)
+}
+
 func main() {
 	if len(os.Args) < 3 || os.Args[1] != "-m" {
-		os.Stderr.WriteString("usage: dot_clean [-m] [dir]\n")
-		os.Exit(1)
+		exit("usage: dot_clean [-m] [dir]")
 	}
 
 	abs, err := filepath.Abs(os.Args[2])
 	if err != nil {
-		os.Stderr.WriteString(err.Error())
-		os.Exit(1)
+		exit(err.Error())
 	}
 
 	stat, err := os.Stat(abs)
 	if err != nil {
-		os.Stderr.WriteString(err.Error())
-		os.Exit(1)
+		exit(err.Error())
 	}
 
 	if !stat.IsDir() {
-		os.Stderr.WriteString("Failed trying to change dir to " + abs + "\n")
-		os.Stderr.WriteString("Bad Pathname: Not a directory\n")
-		os.Exit(0)
+		exit("Failed trying to change dir to " + abs + "\nBad Pathname: Not a directory")
 	}
 
 	err = filepath.Walk(abs, func(path string, info fs.FileInfo, err error) error {
@@ -39,7 +39,6 @@ func main() {
 		return os.Remove(path)
 	})
 	if err != nil {
-		os.Stderr.WriteString(err.Error())
-		os.Exit(1)
+		exit(err.Error())
 	}
 }
